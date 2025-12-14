@@ -8,13 +8,11 @@ function authHeaders(){
 }
 
 async function api(path, opts={}){
-  const res = await fetch(API + path, {
-    ...opts,
-    headers: {
-      'Content-Type': opts.body instanceof FormData ? undefined : 'application/json',
-      ...(opts.headers || {}),
-    }
-  });
+  const headers = { ...(opts.headers || {}) };
+  if (!(opts.body instanceof FormData) && !('Content-Type' in headers)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const res = await fetch(API + path, { ...opts, headers });
   const text = await res.text();
   let json;
   try{ json = text ? JSON.parse(text) : null; } catch { json = null; }

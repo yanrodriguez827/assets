@@ -1,139 +1,26 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import sqlite3 from 'sqlite3';
+import { open, type Database } from 'sqlite';
 
-export type DB = {
-  run: (sql: string, params?: Record<string, unknown>) => Promise<void>;
-  get: <T>(sql: string, params?: Record<string, unknown>) => Promise<T | undefined>;
-  all: <T>(sql: string, params?: Record<string, unknown>) => Promise<T[]>;
-};
-
-// Lightweight SQLite wrapper without native deps: uses "sqlite3" CLI if present.
-// If it's not available, we fall back to a JSON-based store (dev-only).
-// This keeps the repo runnable in constrained environments.
-
-type JsonStore = {
-  users: any[];
-  videos: any[];
-  video_likes: any[];
-  comments: any[];
-  subscriptions: any[];
-};
-
-function ensureDir(p: string) {
-  fs.mkdirSync(p, { recursive: true });
-}
-
-function loadJson(file: string): JsonStore {
-  if (!fs.existsSync(file)) {
-    const init: JsonStore = { users: [], videos: [], video_likes: [], comments: [], subscriptions: [] };
-    fs.writeFileSync(file, JSON.stringify(init, null, 2));
-    return init;
-  }
-  return JSON.parse(fs.readFileSync(file, 'utf8')) as JsonStore;
-}
-
-function saveJson(file: string, data: JsonStore) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
+export type DB = Database<sqlite3.Database, sqlite3.Statement>;
 
 export async function openDb(storageDir: string): Promise<DB> {
-  // Prefer sqlite3 CLI when available.
-  const sqlitePath = path.join(storageDir, 'db.sqlite');
-  const jsonPath = path.join(storageDir, 'db.json');
-  ensureDir(storageDir);
+  fs.mkdirSync(storageDir, { recursive: true });
+  const dbPath = path.join(storageDir, 'db.sqlite');
 
-  const hasSqliteCli = await import('node:child_process').then(({ spawnSync }) => {
-    const r = spawnSync('sqlite3', ['-version'], { stdio: 'ignore' });
-    return r.status === 0;
-  }).catch(() => false);
+  const db = await open({
+    filename: dbPath,
+    driver: sqlite3.Database
+  });
 
-  if (!hasSqliteCli) {
-    const store = loadJson(jsonPath);
-    return makeJsonDb(jsonPath, store);
-  }
+  await db.exec('PRAGMA foreign_keys = ON;');
+  await db.exec('PRAGMA journal_mode = WAL;');
+  await db.exec('PRAGMA synchronous = NORMAL;');
+  await db.exec('PRAGMA busy_timeout = 5000;');
 
-  // Initialize schema
   const schema = fs.readFileSync(new URL('./schema.sql', import.meta.url), 'utf8');
-  await execSqlite(sqlitePath, schema);
+  await db.exec(schema);
 
-  return {
-    run: async (sql, params) => {
-      await execSqlite(sqlitePath, bindParams(sql, params));
-    },
-    get: async (sql, params) => {
-      const out = await querySqlite(sqlitePath, bindParams(sql, params));
-      return out[0] as any;
-    },
-    all: async (sql, params) => {
-      const out = await querySqlite(sqlitePath, bindParams(sql, params));
-      return out as any;
-    }
-  };
-}
-
-function bindParams(sql: string, params?: Record<string, unknown>): string {
-  if (!params) return sql;
-  // Very small helper for named params like :id. Escapes strings for sqlite CLI.
-  let out = sql;
-  for (const [k, v] of Object.entries(params)) {
-    const key = `:${k}`;
-    const rep = toSqlLiteral(v);
-    out = out.split(key).join(rep);
-  }
-  return out;
-}
-
-function toSqlLiteral(v: unknown): string {
-  if (v === null || v === undefined) return 'NULL';
-  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
-  if (typeof v === 'boolean') return v ? '1' : '0';
-  // string/others
-  const s = String(v).replaceAll("'", "''");
-  return `'${s}'`;
-}
-
-async function execSqlite(dbFile: string, sql: string): Promise<void> {
-  const { spawn } = await import('node:child_process');
-  await new Promise<void>((resolve, reject) => {
-    const p = spawn('sqlite3', ['-batch', dbFile], { stdio: ['pipe', 'pipe', 'pipe'] });
-    let err = '';
-    p.stderr.on('data', (d) => (err += d.toString()));
-    p.on('close', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(err || `sqlite3 exited ${code}`));
-    });
-    p.stdin.write(sql);
-    p.stdin.end();
-  });
-}
-
-async function querySqlite(dbFile: string, sql: string): Promise<any[]> {
-  const { spawn } = await import('node:child_process');
-  const raw = await new Promise<string>((resolve, reject) => {
-    const p = spawn('sqlite3', ['-json', dbFile, sql], { stdio: ['ignore', 'pipe', 'pipe'] });
-    let out = '';
-    let err = '';
-    p.stdout.on('data', (d) => (out += d.toString()));
-    p.stderr.on('data', (d) => (err += d.toString()));
-    p.on('close', (code) => {
-      if (code === 0) resolve(out);
-      else reject(new Error(err || `sqlite3 exited ${code}`));
-    });
-  });
-  const trimmed = raw.trim();
-  if (!trimmed) return [];
-  return JSON.parse(trimmed);
-}
-
-function makeJsonDb(file: string, store: JsonStore): DB {
-  // Extremely small subset supporting the queries used by this app.
-  // This is not a general SQL implementation.
-  return {
-    run: async () => {
-      // no-op; app uses dedicated helpers for JSON mode
-      saveJson(file, store);
-    },
-    get: async () => undefined,
-    all: async () => []
-  };
+  return db;
 }

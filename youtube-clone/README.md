@@ -24,4 +24,4 @@ Open `http://localhost:4000`.
 
 ### Notes
 - Storage goes to `youtube-clone/storage/`
-- DB uses `sqlite3` CLI if available; otherwise it falls back to a dev JSON store.
+- DB is SQLite (`youtube-clone/storage/db.sqlite`) via the `sqlite3` Node driver (WAL enabled).
