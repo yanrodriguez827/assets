@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Auth</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <a class="logo" href="/"><b>Video</b>Clone</a>
+    <form class="search" id="searchForm">
+      <input id="q" placeholder="Search" />
+      <button type="submit">Search</button>
+    </form>
+    <a class="btn" href="/upload.html">Upload</a>
+    <a class="btn" href="/auth.html">Login</a>
+  </header>
+
+  <main>
+    <div class="row" style="gap:14px;align-items:flex-start">
+      <div class="panel" style="flex:1;min-width:300px">
+        <h2 style="margin-top:0">Register</h2>
+        <form id="registerForm" style="display:grid;gap:10px">
+          <input id="rEmail" placeholder="Email" type="email" required />
+          <input id="rUsername" placeholder="Username" required />
+          <input id="rPassword" placeholder="Password (min 8)" type="password" required />
+          <button class="btn" type="submit">Create account</button>
+        </form>
+      </div>
+      <div class="panel" style="flex:1;min-width:300px">
+        <h2 style="margin-top:0">Login</h2>
+        <form id="loginForm" style="display:grid;gap:10px">
+          <input id="lEmail" placeholder="Email" type="email" required />
+          <input id="lPassword" placeholder="Password" type="password" required />
+          <button class="btn" type="submit">Login</button>
+        </form>
+        <hr />
+        <button class="btn" id="logout" type="button">Logout (local)</button>
+        <div class="small" style="margin-top:8px">Token is stored in localStorage.</div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { wireHeader, renderAuth } from '/app.js';
+    wireHeader();
+    renderAuth();
+  </script>
+</body>
+</html>
