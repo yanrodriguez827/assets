@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Upload</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <a class="logo" href="/"><b>Video</b>Clone 2025</a>
+    <form class="search" id="searchForm">
+      <input id="q" placeholder="Search" />
+      <button type="submit">Search</button>
+    </form>
+    <a class="btn" href="/upload.html">Upload</a>
+    <a class="btn" href="/auth.html">Login</a>
+  </header>
+
+  <main>
+    <div class="panel" style="max-width:820px;margin:0 auto">
+      <h2 style="margin-top:0">Upload a video</h2>
+      <div class="small">Uploads and transcodes to HLS in background.</div>
+      <hr />
+      <form id="uploadForm" style="display:grid;gap:10px">
+        <input id="uTitle" placeholder="Title" required />
+        <textarea id="uDesc" placeholder="Description"></textarea>
+        <input id="uFile" type="file" accept="video/*" required />
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div class="small" id="status"></div>
+          <button class="btn" type="submit">Upload</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Watch</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18"></script>
+</head>
+<body>
+  <header>
+    <a class="logo" href="/"><b>Video</b>Clone 2025</a>
+    <form class="search" id="searchForm">
+      <input id="q" placeholder="Search" />
+      <button type="submit">Search</button>
+    </form>
+    <a class="btn" href="/upload.html">Upload</a>
+    <a class="btn" href="/auth.html">Login</a>
+  </header>
+
+  <main>
+    <div class="row" style="gap:16px;align-items:flex-start">
+      <div style="flex:2;min-width:320px">
+        <video id="video" controls playsinline></video>
+        <h2 id="title" style="margin:12px 0 6px 0"></h2>
+        <div class="small"><b id="channel"></b></div>
+        <div class="small" id="stats" style="margin-top:6px"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="likeBtn">Like</button>
+          <span class="small" id="likeState"></span>
+        </div>
+        <div class="panel" style="margin-top:12px">
+          <div class="small" style="margin-bottom:8px">Description</div>
+          <div id="desc" style="white-space:pre-wrap"></div>
+        </div>
+
+        <h3 style="margin-top:16px">Comments</h3>
+        <form id="commentForm" class="panel">
+          <textarea id="commentBody" placeholder="Add a comment"></textarea>
+          <div class="row" style="justify-content:flex-end;margin-top:10px">
+            <button class="btn" type="submit">Post</button>
+          </div>
+        </form>
+        <div id="comments" style="display:grid;gap:10px;margin-top:10px"></div>
+      </div>
+
+      <div style="flex:1;min-width:280px">
+        <div class="panel">
+          <div class="small">Up next</div>
+          <div class="small" style="margin-top:8px" id="upnext"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

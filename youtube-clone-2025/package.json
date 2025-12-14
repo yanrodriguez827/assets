@@ -1,0 +1,14 @@
+{
+  "name": "youtube-clone-2025",
+  "private": true,
+  "workspaces": [
+    "services/api",
+    "services/worker"
+  ],
+  "scripts": {
+    "install:all": "npm install -ws",
+    "build": "npm run -ws build",
+    "dev:api": "npm -w services/api run dev",
+    "dev:worker": "npm -w services/worker run dev"
+  }
+}
